@@ -6,20 +6,22 @@ import { useAuth } from '../context/AuthContext';
 import StatusBadge from '../components/StatusBadge';
 import Spinner from '../components/Spinner';
 
-const STATUS_LIST = ['todo', 'in_progress', 'done', 'cancelled'];
+// Backend TaskStatus enum values (PENDING/COMPLETED lowercased)
+const STATUS_LIST = ['pending', 'completed'];
 
 const STATUS_ICONS = {
-  todo:        '○',
-  in_progress: '◑',
-  done:        '●',
-  cancelled:   '✕',
+  pending:   '○',
+  completed: '●',
 };
 
 const STAT_COLORS = {
-  todo:        { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8' },
-  in_progress: { bg: 'var(--info-dim)',        color: 'var(--info)'    },
-  done:        { bg: 'var(--success-dim)',      color: 'var(--success)' },
-  cancelled:   { bg: 'var(--danger-dim)',       color: 'var(--danger)'  },
+  pending:   { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8' },
+  completed: { bg: 'var(--success-dim)',      color: 'var(--success)' },
+};
+
+const STATUS_LABELS = {
+  pending:   'Pending',
+  completed: 'Completed',
 };
 
 export default function DashboardPage() {
@@ -29,20 +31,21 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      tasksApi.list(),
-      documentsApi.list(),
-    ])
+    const promises = [tasksApi.list()];
+    if (isAdmin) {
+      promises.push(documentsApi.list());
+    }
+    Promise.all(promises)
       .then(([tr, dr]) => {
         setTasks(tr.data);
-        setDocs(dr.data);
+        if (dr) setDocs(dr.data);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [isAdmin]);
 
   const counts = STATUS_LIST.reduce((acc, s) => {
-    acc[s] = tasks.filter(t => t.status === s).length;
+    acc[s] = tasks.filter(t => (t.status ?? '').toLowerCase() === s).length;
     return acc;
   }, {});
 
@@ -78,24 +81,26 @@ export default function DashboardPage() {
               </div>
               <div className="stat-value" style={{ color }}>{counts[s]}</div>
               <div className="stat-label">
-                {s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
+                {STATUS_LABELS[s] ?? s}
               </div>
             </div>
           );
         })}
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}>
-            ⊞
+        {isAdmin && (
+          <div className="stat-card">
+            <div className="stat-icon" style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}>
+              ⊞
+            </div>
+            <div className="stat-value" style={{ color: 'var(--accent-light)' }}>{docs.length}</div>
+            <div className="stat-label">Documents</div>
           </div>
-          <div className="stat-value" style={{ color: 'var(--accent-light)' }}>{docs.length}</div>
-          <div className="stat-label">Documents</div>
-        </div>
+        )}
         <div className="stat-card">
           <div className="stat-icon" style={{ background: 'var(--success-dim)', color: 'var(--success)' }}>
             ✓
           </div>
           <div className="stat-value" style={{ color: 'var(--success)' }}>
-            {tasks.length ? Math.round((counts.done / tasks.length) * 100) : 0}%
+            {tasks.length ? Math.round(((counts.completed || 0) / tasks.length) * 100) : 0}%
           </div>
           <div className="stat-label">Completion Rate</div>
         </div>
@@ -146,8 +151,8 @@ export default function DashboardPage() {
       {/* Quick Links */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
         {[
-          { to: '/tasks',     icon: '✓', label: 'Manage Tasks',       desc: 'Create & track tasks'    },
-          { to: '/documents', icon: '⊞', label: 'Knowledge Base',     desc: 'Browse documents'        },
+          { to: '/tasks',     icon: '✓', label: 'View Tasks',         desc: isAdmin ? 'Create & track tasks' : 'View & update assigned tasks' },
+          ...(isAdmin ? [{ to: '/documents', icon: '⊞', label: 'Knowledge Base', desc: 'Manage documents' }] : []),
           { to: '/search',    icon: '⌕', label: 'Semantic Search',    desc: 'AI-powered search'       },
           ...(isAdmin ? [{ to: '/analytics', icon: '◈', label: 'Analytics', desc: 'System insights' }] : []),
         ].map(({ to, icon, label, desc }) => (

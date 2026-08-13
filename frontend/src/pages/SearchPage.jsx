@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { searchApi } from '../api/search';
 import { useToast } from '../components/Toast';
 import Spinner from '../components/Spinner';
@@ -137,7 +138,10 @@ export default function SearchPage() {
             <div className="empty-state">
               <div className="empty-state-icon">🔍</div>
               <h3>No results found</h3>
-              <p>Try different keywords or upload more documents to the knowledge base.</p>
+              <p>Try different keywords or upload documents to the knowledge base.</p>
+              <Link to="/documents" className="btn btn-primary" style={{ marginTop: '0.75rem' }}>
+                ☁ Upload Documents
+              </Link>
             </div>
           ) : (
             <div>

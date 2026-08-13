@@ -31,11 +31,20 @@ export default function UsersPage() {
   const handleChange = (e) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  const ROLE_ID = { admin: 1, user: 2 };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await usersApi.create(form);
+      // Backend UserCreate expects role_id (int), not role (string)
+      const payload = {
+        username: form.username,
+        email: form.email,
+        password: form.password,
+        role_id: ROLE_ID[form.role] ?? 2,
+      };
+      await usersApi.create(payload);
       toast(`User "${form.username}" created!`, 'success');
       setShowCreate(false);
       setForm(EMPTY_FORM);

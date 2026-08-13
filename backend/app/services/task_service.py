@@ -67,10 +67,10 @@ class TaskService:
             task.assigned_to = payload.assigned_to
 
         if payload.status is not None:
-            # Validate status
+            # Validate status (case-insensitive)
             try:
-                new_status = TaskStatus(payload.status)
-            except ValueError:
+                new_status = TaskStatus(payload.status.upper())
+            except (ValueError, AttributeError):
                 raise ValueError(f"Invalid status value: {payload.status}")
 
             task.status = new_status
@@ -120,8 +120,9 @@ class TaskService:
         task_status = None
         if status is not None:
             try:
-                task_status = TaskStatus(status)
-            except ValueError:
+                # Frontend sends lowercase ('pending'/'completed') — normalise to uppercase
+                task_status = TaskStatus(status.upper())
+            except (ValueError, AttributeError):
                 raise ValueError(f"Invalid status filter: {status}")
 
         if is_admin:

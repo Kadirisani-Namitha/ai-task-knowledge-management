@@ -48,11 +48,24 @@ class UserResponse(BaseModel):
     id: int
     username: str
     email: str
+    role: str = ""     # "admin" or "user" — populated from the Role relationship
     role_id: int
     is_active: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @field_validator("role", mode="before")
+    @classmethod
+    def parse_role(cls, v: str | object) -> str:
+        if hasattr(v, "name"):
+            return str(v.name).lower()
+        if isinstance(v, str):
+            return v.lower()
+        return ""
+
+
+
 
 
 # ── Role ─────────────────────────────────────────────────────────────────────

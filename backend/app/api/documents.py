@@ -45,10 +45,10 @@ async def upload_document(
 
 @router.get("", response_model=list[DocumentResponse])
 def list_documents(
-    current_user: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(require_admin)],
     db: Annotated[Session, Depends(get_db)],
 ) -> list[DocumentResponse]:
-    """List all uploaded documents."""
+    """List all uploaded documents. Admin only."""
     service = DocumentService(db)
     docs = service.list_documents()
     return [DocumentResponse.model_validate(d) for d in docs]

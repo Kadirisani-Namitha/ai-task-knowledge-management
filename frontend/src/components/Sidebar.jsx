@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 const NAV_ITEMS = [
   { to: '/dashboard', icon: '⬡', label: 'Dashboard' },
   { to: '/tasks',     icon: '✓', label: 'Tasks'     },
-  { to: '/documents', icon: '⊞', label: 'Documents' },
   { to: '/search',    icon: '⌕', label: 'Search'    },
 ];
 
 const ADMIN_ITEMS = [
+  { to: '/documents', icon: '⊞', label: 'Documents' },
   { to: '/analytics', icon: '◈', label: 'Analytics' },
   { to: '/users',     icon: '◎', label: 'Users'     },
 ];

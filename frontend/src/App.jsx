@@ -29,10 +29,14 @@ export default function App() {
               <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/tasks"     element={<TasksPage />} />
-              <Route path="/documents" element={<DocumentsPage />} />
               <Route path="/search"    element={<SearchPage />} />
 
               {/* Admin-only */}
+              <Route path="/documents" element={
+                <ProtectedRoute adminOnly>
+                  <DocumentsPage />
+                </ProtectedRoute>
+              } />
               <Route path="/analytics" element={
                 <ProtectedRoute adminOnly>
                   <AnalyticsPage />

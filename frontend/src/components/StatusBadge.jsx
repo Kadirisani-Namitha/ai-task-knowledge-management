@@ -1,9 +1,17 @@
 const STATUS_MAP = {
+  // Backend TaskStatus enum values — uppercase (raw from API)
+  PENDING:     { label: 'Pending',     cls: 'badge-todo'        },
+  COMPLETED:   { label: 'Completed',   cls: 'badge-done'        },
+  // Lowercase variants (used in filter comparisons and form values)
+  pending:     { label: 'Pending',     cls: 'badge-todo'        },
+  completed:   { label: 'Completed',   cls: 'badge-done'        },
+  // Legacy/fallback mappings (kept for safety)
   todo:        { label: 'To Do',       cls: 'badge-todo'        },
   in_progress: { label: 'In Progress', cls: 'badge-in_progress' },
   done:        { label: 'Done',        cls: 'badge-done'        },
   cancelled:   { label: 'Cancelled',   cls: 'badge-cancelled'   },
 };
+
 
 const ROLE_MAP = {
   admin: { label: 'Admin', cls: 'badge-admin' },

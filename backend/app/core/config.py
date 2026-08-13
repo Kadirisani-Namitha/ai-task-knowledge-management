@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 20
 
     # CORS
-    CORS_ORIGINS: str = "http://localhost:5173"
+    CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174"
 
     # Logging
     LOG_LEVEL: str = "INFO"

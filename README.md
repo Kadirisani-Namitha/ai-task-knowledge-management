@@ -1,5 +1,36 @@
 # AI-Powered Task & Knowledge Management
 
+## Demo Video & Screen Recording
+
+🎬 **[Watch Project Demo Video on Google Drive](https://drive.google.com/file/d/1Z3mZlnV1kyTdHw0_D2P3ip0W7AF1jAGo/view?usp=sharing)**
+
+---
+
+## Application Screenshots
+
+### 1. Dashboard View
+![Dashboard View](screenshots/dashboard.png)
+
+### 2. Login Interface
+![Login Interface](screenshots/login.png)
+
+### 3. Tasks Management
+![Tasks Page](screenshots/tasks.png)
+
+### 4. Semantic Search (AI-Powered)
+![Semantic Search](screenshots/search.png)
+
+### 5. Admin Documents Management
+![Documents Page](screenshots/documents.png)
+
+### 6. Admin Analytics & Activity Log
+![Analytics Page](screenshots/analytics.png)
+
+### 7. Admin User Management
+![Users Page](screenshots/users.png)
+
+---
+
 ## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the full design document.

@@ -7,9 +7,11 @@ import StatusBadge from '../components/StatusBadge';
 import Modal from '../components/Modal';
 import Spinner from '../components/Spinner';
 
-const STATUSES = ['todo', 'in_progress', 'done', 'cancelled'];
+// Backend TaskStatus enum values (PENDING / COMPLETED, lowercased for API params)
+const STATUSES = ['pending', 'completed'];
+const STATUS_LABELS = { pending: 'Pending', completed: 'Completed' };
 
-const EMPTY_FORM = { title: '', description: '', status: 'todo', assigned_to: '' };
+const EMPTY_FORM = { title: '', description: '', assigned_to: '' };
 
 export default function TasksPage() {
   const { isAdmin } = useAuth();
@@ -46,7 +48,8 @@ export default function TasksPage() {
     setForm({
       title:       t.title,
       description: t.description ?? '',
-      status:      t.status,
+      // status comes back from backend as 'PENDING' or 'COMPLETED' — lowercase for the select
+      status:      (t.status ?? 'pending').toLowerCase(),
       assigned_to: t.assigned_to ?? '',
     });
     setEditTask(t);
@@ -55,14 +58,21 @@ export default function TasksPage() {
   const handleFormChange = (e) =>
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
+  // Helper: look up username by user ID from loaded users list
+  const getUserName = (id) => {
+    if (!id) return '—';
+    const u = users.find(u => u.id === id);
+    return u ? u.username : `#${id}`;
+  };
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      // TaskCreate schema: title, description, assigned_to (no status — defaults to PENDING)
       const payload = {
         title:       form.title,
         description: form.description || null,
-        status:      form.status,
         assigned_to: form.assigned_to ? Number(form.assigned_to) : null,
       };
       await tasksApi.create(payload);
@@ -84,7 +94,8 @@ export default function TasksPage() {
         ? {
             title:       form.title,
             description: form.description || null,
-            status:      form.status,
+            // status is sent as-is (pending/completed) — backend validates via TaskStatus enum
+            ...(form.status ? { status: form.status } : {}),
             assigned_to: form.assigned_to ? Number(form.assigned_to) : null,
           }
         : { status: form.status };
@@ -141,22 +152,23 @@ export default function TasksPage() {
             />
           </div>
         )}
-        <div className="form-group">
-          <label className="form-label" htmlFor="task-status">Status</label>
-          <select
-            id="task-status"
-            name="status"
-            className="form-select"
-            value={form.status}
-            onChange={handleFormChange}
-          >
-            {STATUSES.map(s => (
-              <option key={s} value={s}>
-                {s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Status selector: only shown when editing (create always starts as Pending) */}
+        {isEdit && (
+          <div className="form-group">
+            <label className="form-label" htmlFor="task-status">Status</label>
+            <select
+              id="task-status"
+              name="status"
+              className="form-select"
+              value={form.status}
+              onChange={handleFormChange}
+            >
+              {STATUSES.map(s => (
+                <option key={s} value={s}>{STATUS_LABELS[s] ?? s}</option>
+              ))}
+            </select>
+          </div>
+        )}
         {isAdmin && (
           <div className="form-group">
             <label className="form-label" htmlFor="task-assign">Assign to</label>
@@ -207,7 +219,7 @@ export default function TasksPage() {
             className={`btn btn-sm ${filterStatus === s ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setFilterStatus(s)}
           >
-            {s === 'in_progress' ? 'In Progress' : s.charAt(0).toUpperCase() + s.slice(1)}
+            {STATUS_LABELS[s] ?? s}
           </button>
         ))}
       </div>
@@ -250,7 +262,7 @@ export default function TasksPage() {
                   </td>
                   <td><StatusBadge value={task.status} /></td>
                   <td style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                    {task.assigned_to ?? '—'}
+                    {getUserName(task.assigned_to)}
                   </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>
                     {new Date(task.created_at).toLocaleDateString()}

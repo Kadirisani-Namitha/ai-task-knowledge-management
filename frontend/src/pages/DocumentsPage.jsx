@@ -37,6 +37,16 @@ export default function DocumentsPage() {
 
   useEffect(() => { fetchDocs(); }, []); // eslint-disable-line
 
+function formatApiError(detail, fallback = 'Upload failed') {
+  if (!detail) return fallback;
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    return detail.map(d => (typeof d === 'string' ? d : d.msg || JSON.stringify(d))).join(', ');
+  }
+  if (typeof detail === 'object') return detail.msg || fallback;
+  return fallback;
+}
+
   const upload = async (file) => {
     if (!file) return;
     const ext = '.' + file.name.split('.').pop().toLowerCase();
@@ -54,7 +64,7 @@ export default function DocumentsPage() {
       toast('Document uploaded and indexed!', 'success');
       fetchDocs();
     } catch (err) {
-      toast(err.response?.data?.detail ?? 'Upload failed', 'error');
+      toast(formatApiError(err.response?.data?.detail, 'Upload failed'), 'error');
     } finally {
       setUploading(false);
     }
@@ -79,53 +89,49 @@ export default function DocumentsPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Documents</h1>
-          <p className="page-subtitle">
-            {isAdmin
-              ? 'Upload and manage the knowledge base'
-              : 'Browse indexed knowledge base documents'}
-          </p>
+          <p className="page-subtitle">Upload and manage knowledge base documents</p>
         </div>
       </div>
 
-      {/* Upload zone — admin only */}
-      {isAdmin && (
-        <div
-          id="upload-zone"
-          className={`upload-zone${dragging ? ' dragging' : ''}`}
-          onClick={() => !uploading && fileRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          role="button"
-          tabIndex={0}
-          aria-label="Upload document — click or drag and drop"
-          onKeyDown={(e) => e.key === 'Enter' && fileRef.current?.click()}
-        >
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".pdf,.docx,.txt"
-            style={{ display: 'none' }}
-            onChange={handleFileInput}
-            aria-hidden="true"
-          />
-          {uploading ? (
-            <Spinner large text="Uploading & indexing…" />
-          ) : (
-            <>
-              <div className="upload-zone-icon" aria-hidden="true">
-                {dragging ? '📂' : '☁'}
-              </div>
-              <div className="upload-zone-text">
-                {dragging ? 'Drop to upload' : 'Click or drag & drop to upload'}
-              </div>
-              <div className="upload-zone-sub">
-                PDF, DOCX, TXT — max {MAX_SIZE_MB} MB
-              </div>
-            </>
-          )}
-        </div>
-      )}
+      {/* Hidden file input placed outside upload zone to avoid event bubbling cancellation */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.docx,.txt"
+        style={{ display: 'none' }}
+        onChange={handleFileInput}
+        aria-hidden="true"
+      />
+
+      {/* Upload zone */}
+      <div
+        id="upload-zone"
+        className={`upload-zone${dragging ? ' dragging' : ''}`}
+        onClick={() => !uploading && fileRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        role="button"
+        tabIndex={0}
+        aria-label="Upload document — click or drag and drop"
+        onKeyDown={(e) => e.key === 'Enter' && fileRef.current?.click()}
+      >
+        {uploading ? (
+          <Spinner large text="Uploading & indexing…" />
+        ) : (
+          <>
+            <div className="upload-zone-icon" aria-hidden="true">
+              {dragging ? '📂' : '☁'}
+            </div>
+            <div className="upload-zone-text">
+              {dragging ? 'Drop to upload' : 'Click or drag & drop to upload'}
+            </div>
+            <div className="upload-zone-sub">
+              PDF, DOCX, TXT — max {MAX_SIZE_MB} MB
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Documents list */}
       {loading ? (
